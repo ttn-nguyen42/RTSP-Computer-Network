@@ -1,6 +1,7 @@
 class VideoStream:
 	def __init__(self, filename):
 		self.filename = filename
+		self.history  = []
 		try:
 			self.file = open(filename, 'rb')
 		except:
@@ -15,9 +16,22 @@ class VideoStream:
 							
 			# Read the current frame
 			data = self.file.read(framelength)
+			self.history.append(framelength+5)
 			self.frameNum += 1
 		return data
-		
+	
+	def preFrame(self):
+		if(self.history):
+			self.file.seek(-int(self.history[-1]),1)
+			self.history.pop()
+			self.frameNum-=1
+	
+	def skipFrame(self):
+		data=self.file.read(5)
+		if(data):
+			framelength=int(data)
+			self.file.seek(framelength,1)
+			self.frameNum+=1
 	def frameNbr(self):
 		"""Get frame number."""
 		return self.frameNum
