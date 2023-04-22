@@ -3,7 +3,7 @@ import tkinter.messagebox
 import PIL
 from PIL import Image, ImageTk
 import socket, threading, sys, traceback, os
-
+from tkinter import ttk
 from RtpPacket import RtpPacket
 
 CACHE_FILE_NAME = "cache-"
@@ -13,13 +13,19 @@ class Client:
 	INIT = 0
 	READY = 1
 	PLAYING = 2
+	SWITCHING=3
 	state = INIT
 	
 	SETUP = 0
 	PLAY = 1
 	PAUSE = 2
 	TEARDOWN = 3
+	FORWARD	=4
+	BACKWARD=5
+	SWITCH=6
 	
+
+
 	# Initiation..
 	def __init__(self, master, serveraddr, serverport, rtpport, filename):
 		self.master = master
@@ -62,11 +68,29 @@ class Client:
 		self.teardown = Button(self.master, width=20, padx=3, pady=3)
 		self.teardown["text"] = "Teardown"
 		self.teardown["command"] =  self.exitClient
-		self.teardown.grid(row=1, column=3, padx=2, pady=2)
+		self.teardown.grid(row=1, column=6, padx=2, pady=2)
 		
+		#Create Skip button
+		self.skip = Button(self.master, width=20, padx=3, pady=3)
+		self.skip["text"] = "Skip"
+		self.skip["command"] =  self.forward
+		self.skip.grid(row=1, column=3, padx=2, pady=2)
+  
+		#Create Back button
+		self.back = Button(self.master, width=20, padx=3, pady=3)
+		self.back["text"] = "PRE"
+		self.back["command"] =  self.backward
+		self.back.grid(row=1, column=4, padx=2, pady=2)
+  
+		#Create Switch button
+		self.SW = Button(self.master, width=20, padx=3, pady=3)
+		self.SW["text"] = "switch"
+		self.SW["command"] =  self.switch
+		self.SW.grid(row=1, column=5, padx=2, pady=2)	
+
 		# Create a label to display the movie
 		self.label = Label(self.master, height=19)
-		self.label.grid(row=0, column=0, columnspan=4, sticky=W+E+N+S, padx=5, pady=5) 
+		self.label.grid(row=0, column=0, columnspan=6, sticky=W+E+N+S, padx=8, pady=8) 
 	
 	def setupMovie(self):
 		"""Setup button handler."""
@@ -93,6 +117,51 @@ class Client:
 			self.playEvent.clear()
 			self.sendRtspRequest(self.PLAY) 
 	
+	def forward(self):
+		"""skip 1 frame"""
+		if(self.state==self.PLAYING):
+			self.pauseMovie()
+		elif(self.state==self.READY):
+			self.sendRtspRequest(self.FORWARD)
+   
+	def backward(self):
+		if(self.state==self.PLAYING):
+			self.pauseMovie()
+		elif(self.state==self.READY):
+			self.sendRtspRequest(self.BACKWARD)
+	
+	def switching(self):
+		self.fileName=self.entry.get()
+		self.box.destroy()
+		self.sendRtspRequest(self.SWITCH)
+	
+ 
+	def handler_switch(self):
+		if tkinter.messagebox.askokcancel('Exit','Are you want to quit ?'):
+			self.state=self.READY
+			self.box.destroy()
+		else:
+			pass
+
+	def switch(self):
+		if(self.state==self.PLAYING):
+			self.pauseMovie()
+		elif(self.state==self.READY):
+			self.state=self.SWITCHING
+			self.box=Tk()
+			self.box.protocol("WM_DELETE_WINDOW",self.handler_switch)
+			self.box.title('Switch to another video')
+			self.box.geometry('750x250')
+			self.boxlabel=Label(self.box, text="", font=("Courier 22 bold"))
+			self.boxlabel.pack()
+			self.entry= Entry(self.box, width= 40)
+			self.entry.focus_set()
+			self.entry.pack()
+			ttk.Button(self.box, text= "Switch",width= 20, command= self.switching).pack(pady=20)
+			self.box.mainloop()
+   
+			
+
 	def listenRtp(self):		
 		"""Listen for RTP packets."""
 		while True:
@@ -106,9 +175,9 @@ class Client:
 
 					print('Current Frame: ' +str(currentframe))
 
-					if(currentframe > self.frameNbr):
-						self.frameNbr=currentframe
-						self.updateMovie(self.writeFrame(Packet.getPayload()))
+					# if(currentframe > self.frameNbr):
+					self.frameNbr=currentframe
+					self.updateMovie(self.writeFrame(Packet.getPayload()))
 			except:
 				if self.playEvent.isSet():
 					break
@@ -129,7 +198,7 @@ class Client:
 	def updateMovie(self, imageFile):
 		"""Update the image file as video frame in the GUI."""
 		photo=ImageTk.PhotoImage(Image.open(imageFile))
-		self.label.configure(image=photo,height=300)
+		self.label.configure(image=photo,height=400)
 		self.label.image=photo
 		
 	def connectToServer(self):
@@ -175,10 +244,27 @@ class Client:
 			self.rtsp.send(request.encode())
 			print('-'*60 + '\n' + 'TEARDOWN request send to Server... \n'+'-'*60)
 			self.requestSent=self.TEARDOWN
+		elif requestCode == self.FORWARD and self.state == self.READY:
+			self.rtspSeq +=1
+			request='FORWARD '+'\n '+str(self.rtspSeq)
+			self.rtsp.send(request.encode())
+			print('-'*60+ '\n'+'FORWARD request sent to Server... \n' + '-'*60)
+			self.requestSent=self.FORWARD
+		elif requestCode == self.BACKWARD and self.state == self.READY:
+			self.rtspSeq +=1
+			request='BACKWARD '+'\n '+str(self.rtspSeq)
+			self.rtsp.send(request.encode())
+			print('-'*60+ '\n'+'BACKWARD request sent to Server... \n' + '-'*60)
+			self.requestSent=self.BACKWARD
+		elif requestCode == self.SWITCH:
+			self.rtspSeq +=1
+			request='SWITCH ' +str(self.fileName) +'\n '+str(self.rtspSeq)
+			self.rtsp.send(request.encode())
+			print('-'*60+ '\n'+'SWITCHING request sent to Server... \n' + '-'*60)
+			self.requestSent=self.SWITCH
 		else:
 			return
 
-		print('Data sent : \n {} \n'.format(request))
 	def recvRtspReply(self):
 		"""Receive RTSP reply from the server."""
 		while TRUE:
@@ -200,13 +286,13 @@ class Client:
 			if(self.sessionId == 0):
 				self.sessionId = session
 			if(self.sessionId == session):
-				print('here')
 				if(int(lines[0].split(' ')[1]) == 200):
 					if(self.requestSent == self.SETUP):
 						print('Updating RTSP state....')
 						self.state=self.READY
 						print('Setting Up RtpPort for Video Stream')
 						self.openRtpPort()
+						self.totalframe=int(lines[3].split(' ')[1]) # use to draw time bar
 					elif self.requestSent== self.PLAY:
 						print('Updating RTSP state.... ')
 						self.state=self.PLAYING
@@ -217,6 +303,15 @@ class Client:
 						self.playEvent.set()
 					elif self.requestSent == self.TEARDOWN:
 						self.teardownAcked=1
+					elif self.requestSent == self.FORWARD:
+						print('SKIP 1 FRAME SUCCESSFULLY')
+					elif self.requestSent == self.BACKWARD:
+						print('BACKWARD 1 FRAME SUCCESSFULLY')
+					elif self.requestSent == self.SWITCH:
+						print('SWITCH SUCCESSFULLY')
+						self.totalframe=int(lines[3].split(' ')[1])
+						self.state=self.READY
+					
 	
 	def openRtpPort(self):
 		"""Open RTP socket binded to a specified port."""
