@@ -68,7 +68,7 @@ class ServerWorker:
 				self.clientInfo['session'] = randint(100000, 999999)
 				
 				# Send RTSP reply
-				self.replyRtsp(self.OK_200, seq[1])
+				self.replyRtsp(self.OK_200, seq[1],1)
 				
 				# Get the RTP/UDP port from the last line
 				self.clientInfo['rtpPort'] = request[2].split(' ')[3]
@@ -138,7 +138,7 @@ class ServerWorker:
 			except IOError:
 				self.replyRtsp(self.FILE_NOT_FOUND_404, seq[1])
 
-			self.replyRtsp(self.OK_200,seq[1])
+			self.replyRtsp(self.OK_200,seq[1],1)
    
 	def sendRtp(self):
 		"""Send RTP packets over UDP."""
@@ -179,11 +179,17 @@ class ServerWorker:
 		
 		return rtpPacket.getPacket()
 		
-	def replyRtsp(self, code, seq):
+	def replyRtsp(self, code, seq,setup=0):
 		"""Send RTSP reply to the client."""
 		if code == self.OK_200:
 			# print("200 OK")
-			reply = 'RTSP/1.0 200 OK\nCSeq: ' + seq + '\nSession: ' + str(self.clientInfo['session'])
+
+			if(setup):
+				time=self.clientInfo['videoStream'].totaltime()
+				reply='RTSP/1.0 200 OK\nCSeq: ' + seq + '\nSession: ' + str(self.clientInfo['session']) +'\ntotalframe: '+str(time)
+			else:
+				reply = 'RTSP/1.0 200 OK\nCSeq: ' + seq + '\nSession: ' + str(self.clientInfo['session'])
+    
 			connSocket = self.clientInfo['rtspSocket'][0]
 			connSocket.send(reply.encode())
 		

@@ -24,8 +24,8 @@ class Client:
 	BACKWARD=5
 	SWITCH=6
 	
- 
- 
+
+
 	# Initiation..
 	def __init__(self, master, serveraddr, serverport, rtpport, filename):
 		self.master = master
@@ -292,6 +292,7 @@ class Client:
 						self.state=self.READY
 						print('Setting Up RtpPort for Video Stream')
 						self.openRtpPort()
+						self.totalframe=int(lines[3].split(' ')[1]) # use to draw time bar
 					elif self.requestSent== self.PLAY:
 						print('Updating RTSP state.... ')
 						self.state=self.PLAYING
@@ -308,6 +309,7 @@ class Client:
 						print('BACKWARD 1 FRAME SUCCESSFULLY')
 					elif self.requestSent == self.SWITCH:
 						print('SWITCH SUCCESSFULLY')
+						self.totalframe=int(lines[3].split(' ')[1])
 						self.state=self.READY
 					
 	
