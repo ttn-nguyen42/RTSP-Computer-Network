@@ -24,8 +24,7 @@ class Client:
 	BACKWARD=5
 	SWITCH=6
 	
-
-
+	
 	# Initiation..
 	def __init__(self, master, serveraddr, serverport, rtpport, filename):
 		self.master = master
@@ -42,55 +41,64 @@ class Client:
 		self.connectToServer()
 		self.frameNbr = 0
 		self.rtp=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+		self.sendRtspRequest(self.SETUP)
 		
 	# THIS GUI IS JUST FOR REFERENCE ONLY, STUDENTS HAVE TO CREATE THEIR OWN GUI 	
 	def createWidgets(self):
 		"""Build GUI."""
-		# Create Setup button
-		self.setup = Button(self.master, width=20, padx=3, pady=3)
-		self.setup["text"] = "Setup"
-		self.setup["command"] = self.setupMovie
-		self.setup.grid(row=1, column=0, padx=2, pady=2)
+		self.play_img = tkinter.PhotoImage(file="./assets/Play Button.png")
+		self.pause_img = tkinter.PhotoImage(file="./assets/Pause Button.png")
+		self.skip_img = tkinter.PhotoImage(file="./assets/Forward Button.png")
+		self.back_img = tkinter.PhotoImage(file="./assets/Backward Button.png")
+  
+		# # Create Setup button
+		# self.setup = Button(self.master, width=20, padx=3, pady=3)
+		# self.setup["text"] = "Setup"
+		# self.setup["command"] = self.setupMovie
+		# self.setup.grid(row=2, column=0, padx=2, pady=2)
 		
 		# Create Play button		
-		self.start = Button(self.master, width=20, padx=3, pady=3)
-		self.start["text"] = "Play"
+		self.start = Button(self.master, width=40, height=40, padx=3, pady=3)
+		self.start["image"] = self.play_img
+		self.start["text"] = "Play/Pause"
 		self.start["command"] = self.playMovie
-		self.start.grid(row=1, column=1, padx=2, pady=2)
+		self.start.grid(row=2, column=2, padx=2, pady=2)
 		
-		# Create Pause button			
-		self.pause = Button(self.master, width=20, padx=3, pady=3)
-		self.pause["text"] = "Pause"
-		self.pause["command"] = self.pauseMovie
-		self.pause.grid(row=1, column=2, padx=2, pady=2)
+		# # Create Pause button			
+		# self.pause = Button(self.master, width=20, padx=3, pady=3)
+		# self.pause["text"] = "Pause"
+		# self.pause["command"] = self.pauseMovie
+		# self.pause.grid(row=2, column=3, padx=2, pady=2)
 		
 		# Create Teardown button
-		self.teardown = Button(self.master, width=20, padx=3, pady=3)
+		self.teardown = Button(self.master, width=10, padx=3, pady=3)
 		self.teardown["text"] = "Teardown"
-		self.teardown["command"] =  self.exitClient
-		self.teardown.grid(row=1, column=6, padx=2, pady=2)
+		self.teardown["command"] = self.exitClient
+		self.teardown.grid(row=0, column=4, padx=2, pady=2)
 		
 		#Create Skip button
-		self.skip = Button(self.master, width=20, padx=3, pady=3)
-		self.skip["text"] = "Skip"
+		self.skip = Button(self.master, width=40, height=40, padx=3, pady=3)
+		self.skip["image"] = self.skip_img
+		self.skip["text"] = "Forward"
 		self.skip["command"] =  self.forward
-		self.skip.grid(row=1, column=3, padx=2, pady=2)
+		self.skip.grid(row=2, column=3, padx=2, pady=2)
   
 		#Create Back button
-		self.back = Button(self.master, width=20, padx=3, pady=3)
-		self.back["text"] = "PRE"
+		self.back = Button(self.master, width=40, height=40, padx=3, pady=3)
+		self.back["image"] = self.back_img
+		self.back["text"] = "Backward"
 		self.back["command"] =  self.backward
-		self.back.grid(row=1, column=4, padx=2, pady=2)
+		self.back.grid(row=2, column=1, padx=2, pady=2)
   
 		#Create Switch button
-		self.SW = Button(self.master, width=20, padx=3, pady=3)
-		self.SW["text"] = "switch"
+		self.SW = Button(self.master, width=10, padx=3, pady=3)
+		self.SW["text"] = "Switch Video"
 		self.SW["command"] =  self.switch
-		self.SW.grid(row=1, column=5, padx=2, pady=2)	
+		self.SW.grid(row=0, column=0, padx=2, pady=2)	
 
 		# Create a label to display the movie
 		self.label = Label(self.master, height=19)
-		self.label.grid(row=0, column=0, columnspan=6, sticky=W+E+N+S, padx=8, pady=8) 
+		self.label.grid(row=1, column=0, columnspan=6, sticky=W+E+N+S, padx=8, pady=8) 
 	
 	def setupMovie(self):
 		"""Setup button handler."""
@@ -115,19 +123,17 @@ class Client:
 			threading.Thread(target=self.listenRtp).start()
 			self.playEvent=threading.Event()
 			self.playEvent.clear()
-			self.sendRtspRequest(self.PLAY) 
+			self.sendRtspRequest(self.PLAY)
+	
+		elif(self.state==self.PLAYING):
+			self.sendRtspRequest(self.PAUSE)
 	
 	def forward(self):
-		"""skip 1 frame"""
-		if(self.state==self.PLAYING):
-			self.pauseMovie()
-		elif(self.state==self.READY):
+		if(self.state==self.PLAYING or self.state==self.READY):
 			self.sendRtspRequest(self.FORWARD)
    
 	def backward(self):
-		if(self.state==self.PLAYING):
-			self.pauseMovie()
-		elif(self.state==self.READY):
+		if(self.state==self.PLAYING or self.state==self.READY):
 			self.sendRtspRequest(self.BACKWARD)
 	
 	def switching(self):
@@ -135,7 +141,6 @@ class Client:
 		self.box.destroy()
 		self.sendRtspRequest(self.SWITCH)
 	
- 
 	def handler_switch(self):
 		if tkinter.messagebox.askokcancel('Exit','Are you want to quit ?'):
 			self.state=self.READY
@@ -144,29 +149,25 @@ class Client:
 			pass
 
 	def switch(self):
-		if(self.state==self.PLAYING):
-			self.pauseMovie()
-		elif(self.state==self.READY):
-			self.state=self.SWITCHING
-			self.box=Tk()
-			self.box.protocol("WM_DELETE_WINDOW",self.handler_switch)
-			self.box.title('Switch to another video')
-			self.box.geometry('750x250')
-			self.boxlabel=Label(self.box, text="", font=("Courier 22 bold"))
-			self.boxlabel.pack()
-			self.entry= Entry(self.box, width= 40)
-			self.entry.focus_set()
-			self.entry.pack()
-			ttk.Button(self.box, text= "Switch",width= 20, command= self.switching).pack(pady=20)
-			self.box.mainloop()
-   
-			
+		self.pauseMovie()
+		self.state=self.SWITCHING
+		self.box=Tk()
+		self.box.protocol("WM_DELETE_WINDOW",self.handler_switch)
+		self.box.title('Switch to another video')
+		self.box.geometry('750x250')
+		self.boxlabel=Label(self.box, text="", font=("Courier 22 bold"))
+		self.boxlabel.pack()
+		self.entry= Entry(self.box, width= 40)
+		self.entry.focus_set()
+		self.entry.pack()
+		ttk.Button(self.box, text= "Switch",width= 20, command= self.switching).pack(pady=20)
+		self.box.mainloop()
 
 	def listenRtp(self):		
 		"""Listen for RTP packets."""
 		while True:
 			try:
-				data=self.rtp.recv(20480)
+				data=self.rtp.recv(40960)
 				if(data):
 					Packet=RtpPacket()
 					Packet.decode(data)
@@ -215,7 +216,7 @@ class Client:
 		#-------------
 		# TO COMPLETE
 		#-------------
-		if requestCode ==  self.SETUP and self.state == self.INIT:
+		if requestCode == self.SETUP and self.state == self.INIT:
 			threading.Thread(target=self.recvRtspReply).start()
 			self.rtspSeq=1
 
@@ -224,38 +225,44 @@ class Client:
 			self.requestSent=self.SETUP
    
 		elif requestCode == self.PLAY and self.state == self.READY:
+			self.start["image"] = self.pause_img
 			self.rtspSeq += 1
 
 			request='PLAY ' + '\n '+ str(self.rtspSeq)
 			self.rtsp.send(request.encode())
 			print('-'*60 + '\n' + 'PLAY request send to Server... \n'+'-'*60)
 			self.requestSent=self.PLAY
+   
 		elif requestCode ==  self.PAUSE and self.state == self.PLAYING:
+			self.start["image"] = self.play_img
 			self.rtspSeq +=1
 
 			request='PAUSE ' +'\n '+str(self.rtspSeq)
 			self.rtsp.send(request.encode())
 			print('-'*60+ '\n'+'PAUSE request sent to Server... \n' + '-'*60)
 			self.requestSent=self.PAUSE
+   
 		elif requestCode == self.TEARDOWN and not self.state == self.INIT:
 			self.rtspSeq +=1
-
 			request='TEARDOWN '+ '\n '+str(self.rtspSeq)
 			self.rtsp.send(request.encode())
 			print('-'*60 + '\n' + 'TEARDOWN request send to Server... \n'+'-'*60)
 			self.requestSent=self.TEARDOWN
-		elif requestCode == self.FORWARD and self.state == self.READY:
+   
+		elif requestCode == self.FORWARD:
 			self.rtspSeq +=1
 			request='FORWARD '+'\n '+str(self.rtspSeq)
 			self.rtsp.send(request.encode())
 			print('-'*60+ '\n'+'FORWARD request sent to Server... \n' + '-'*60)
 			self.requestSent=self.FORWARD
-		elif requestCode == self.BACKWARD and self.state == self.READY:
+   
+		elif requestCode == self.BACKWARD:
 			self.rtspSeq +=1
 			request='BACKWARD '+'\n '+str(self.rtspSeq)
 			self.rtsp.send(request.encode())
 			print('-'*60+ '\n'+'BACKWARD request sent to Server... \n' + '-'*60)
 			self.requestSent=self.BACKWARD
+   
 		elif requestCode == self.SWITCH:
 			self.rtspSeq +=1
 			request='SWITCH ' +str(self.fileName) +'\n '+str(self.rtspSeq)
@@ -304,9 +311,9 @@ class Client:
 					elif self.requestSent == self.TEARDOWN:
 						self.teardownAcked=1
 					elif self.requestSent == self.FORWARD:
-						print('SKIP 1 FRAME SUCCESSFULLY')
+						print('SKIP SUCCESSFULLY')
 					elif self.requestSent == self.BACKWARD:
-						print('BACKWARD 1 FRAME SUCCESSFULLY')
+						print('BACKWARD SUCCESSFULLY')
 					elif self.requestSent == self.SWITCH:
 						print('SWITCH SUCCESSFULLY')
 						self.totalframe=int(lines[3].split(' ')[1])

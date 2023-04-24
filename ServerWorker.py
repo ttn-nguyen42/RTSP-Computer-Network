@@ -113,23 +113,25 @@ class ServerWorker:
 		elif requestType == self.FORWARD:
 			print("processing FORWARD")
 			
-			self.clientInfo['event'].set()
+			# self.clientInfo['event'].set()
 			try:
 				self.clientInfo['videoStream'].skipFrame()
 			except:
 				print("Connection Error")
     
 			self.replyRtsp(self.OK_200, seq[1])
+   
 		elif requestType == self.BACKWARD:
 			print("processing BACKWARD")
    
-			self.clientInfo['event'].set()
+			# self.clientInfo['event'].set()
 			try:
 				self.clientInfo['videoStream'].preFrame()
 			except:
 				print('Connection Error')
 
 			self.replyRtsp(self.OK_200,seq[1])
+   
 		elif requestType == self.SWITCH:
 			print('processing switch')
 			try:
