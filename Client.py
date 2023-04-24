@@ -60,8 +60,6 @@ class Client:
 		# Create Play button		
 		self.start = Button(self.master, width=40, height=40, padx=3, pady=3)
 		self.start["image"] = self.play_img
-		if self.state == self.PLAYING:
-			self.start["image"] = self.pause_img
 		self.start["text"] = "Play/Pause"
 		self.start["command"] = self.playMovie
 		self.start.grid(row=2, column=2, padx=2, pady=2)
@@ -227,6 +225,7 @@ class Client:
 			self.requestSent=self.SETUP
    
 		elif requestCode == self.PLAY and self.state == self.READY:
+			self.start["image"] = self.pause_img
 			self.rtspSeq += 1
 
 			request='PLAY ' + '\n '+ str(self.rtspSeq)
@@ -235,6 +234,7 @@ class Client:
 			self.requestSent=self.PLAY
    
 		elif requestCode ==  self.PAUSE and self.state == self.PLAYING:
+			self.start["image"] = self.play_img
 			self.rtspSeq +=1
 
 			request='PAUSE ' +'\n '+str(self.rtspSeq)
