@@ -1,9 +1,10 @@
+import os
 class VideoStream:
 	def __init__(self, filename):
 		self.filename = filename
 		self.history  = []
 		try:
-			self.file = open(filename, 'rb')
+			self.file = open(os.path.join('data',filename), 'rb')
 		except:
 			raise IOError
 		self.frameNum = 0
@@ -23,8 +24,6 @@ class VideoStream:
 
 	def nextFrame(self):
 		"""Get next frame."""
-		if self.frameNum == self.totalframe:
-			return None
 		data = self.file.read(5) # Get the framelength from the first 5 bits
 		if data: 
 			framelength = int(data)

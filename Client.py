@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 import socket, threading, sys, traceback, os
 from tkinter import ttk
 from RtpPacket import RtpPacket
-
+import os
 CACHE_FILE_NAME = "cache-"
 CACHE_FILE_EXT = ".jpg"
 
@@ -136,7 +136,7 @@ class Client:
 			self.sendRtspRequest(self.BACKWARD)
 	
 	def switching(self):
-		self.fileName=self.entry.get()
+		self.fileName=self.listbox.get(self.listbox.curselection())
 		self.box.destroy()
 		self.sendRtspRequest(self.SWITCH)
 	
@@ -155,12 +155,17 @@ class Client:
 			self.box=Tk()
 			self.box.protocol("WM_DELETE_WINDOW",self.handler_switch)
 			self.box.title('Switch to another video')
-			self.box.geometry('750x250')
+			self.box.geometry('500x500')
 			self.boxlabel=Label(self.box, text="", font=("Courier 22 bold"))
 			self.boxlabel.pack()
-			self.entry= Entry(self.box, width= 40)
-			self.entry.focus_set()
-			self.entry.pack()
+			# self.entry= Entry(self.box, width= 40)
+			# self.entry.focus_set()
+			# self.entry.pack()
+			self.listbox = Listbox(self.box)
+			for name in os.listdir('data'):
+				self.listbox.insert('end', name)
+			self.listbox.focus_set()
+			self.listbox.pack()
 			ttk.Button(self.box, text= "Switch",width= 20, command= self.switching).pack(pady=20)
 			self.box.mainloop()
 
@@ -317,6 +322,7 @@ class Client:
 						print('SWITCH SUCCESSFULLY')
 						self.totalframe=int(lines[3].split(' ')[1])
 						self.state=self.READY
+						self.frameNbr=0
 					
 	
 	def openRtpPort(self):
