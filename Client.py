@@ -24,7 +24,7 @@ class Client:
 	BACKWARD=5
 	SWITCH=6
 	
- 
+	
 	# Initiation..
 	def __init__(self, master, serveraddr, serverport, rtpport, filename):
 		self.master = master
@@ -45,11 +45,12 @@ class Client:
 		
 	# THIS GUI IS JUST FOR REFERENCE ONLY, STUDENTS HAVE TO CREATE THEIR OWN GUI 	
 	def createWidgets(self):
-		self.play_img = PhotoImage("./assets/Play Button.png")
-		self.pause_img = PhotoImage("./assets/Pause Button.png")
-		self.skip_img = PhotoImage("./assets/Forward Button.png")
-		self.back_img = PhotoImage("./assets/Backward Button.png")
 		"""Build GUI."""
+		self.play_img = tkinter.PhotoImage(file="./assets/Play Button.png")
+		self.pause_img = tkinter.PhotoImage(file="./assets/Pause Button.png")
+		self.skip_img = tkinter.PhotoImage(file="./assets/Forward Button.png")
+		self.back_img = tkinter.PhotoImage(file="./assets/Backward Button.png")
+  
 		# # Create Setup button
 		# self.setup = Button(self.master, width=20, padx=3, pady=3)
 		# self.setup["text"] = "Setup"
@@ -57,7 +58,7 @@ class Client:
 		# self.setup.grid(row=2, column=0, padx=2, pady=2)
 		
 		# Create Play button		
-		self.start = Button(self.master, height=50, width=50, padx=3, pady=3)
+		self.start = Button(self.master, width=40, height=40, padx=3, pady=3)
 		self.start["image"] = self.play_img
 		self.start["text"] = "Play/Pause"
 		self.start["command"] = self.playMovie
@@ -70,27 +71,27 @@ class Client:
 		# self.pause.grid(row=2, column=3, padx=2, pady=2)
 		
 		# Create Teardown button
-		self.teardown = Button(self.master, width=20, padx=3, pady=3)
+		self.teardown = Button(self.master, width=10, padx=3, pady=3)
 		self.teardown["text"] = "Teardown"
-		self.teardown["command"] =  self.exitClient
-		self.teardown.grid(row=2, column=4, padx=2, pady=2)
+		self.teardown["command"] = self.exitClient
+		self.teardown.grid(row=0, column=4, padx=2, pady=2)
 		
 		#Create Skip button
-		self.skip = Button(self.master, height=50, width=50, padx=3, pady=3)
+		self.skip = Button(self.master, width=40, height=40, padx=3, pady=3)
 		self.skip["image"] = self.skip_img
 		self.skip["text"] = "Forward"
 		self.skip["command"] =  self.forward
 		self.skip.grid(row=2, column=3, padx=2, pady=2)
   
 		#Create Back button
-		self.back = Button(self.master, height=50, width=50, padx=3, pady=3)
+		self.back = Button(self.master, width=40, height=40, padx=3, pady=3)
 		self.back["image"] = self.back_img
 		self.back["text"] = "Backward"
 		self.back["command"] =  self.backward
 		self.back.grid(row=2, column=1, padx=2, pady=2)
   
 		#Create Switch button
-		self.SW = Button(self.master, width=20, padx=3, pady=3)
+		self.SW = Button(self.master, width=10, padx=3, pady=3)
 		self.SW["text"] = "Switch Video"
 		self.SW["command"] =  self.switch
 		self.SW.grid(row=0, column=0, padx=2, pady=2)	
@@ -148,32 +149,25 @@ class Client:
 			pass
 
 	def switch(self):
-		if(self.state==self.PLAYING):
-			self.pauseMovie()
-		elif(self.state==self.READY):
-			self.state=self.SWITCHING
-			self.box=Tk()
-			self.box.protocol("WM_DELETE_WINDOW",self.handler_switch)
-			self.box.title('Switch to another video')
-			self.box.geometry('500x500')
-			self.boxlabel=Label(self.box, text="", font=("Courier 22 bold"))
-			self.boxlabel.pack()
-			# self.entry= Entry(self.box, width= 40)
-			# self.entry.focus_set()
-			# self.entry.pack()
-			self.listbox = Listbox(self.box)
-			for name in os.listdir('data'):
-				self.listbox.insert('end', name)
-			self.listbox.focus_set()
-			self.listbox.pack()
-			ttk.Button(self.box, text= "Switch",width= 20, command= self.switching).pack(pady=20)
-			self.box.mainloop()
+		self.pauseMovie()
+		self.state=self.SWITCHING
+		self.box=Tk()
+		self.box.protocol("WM_DELETE_WINDOW",self.handler_switch)
+		self.box.title('Switch to another video')
+		self.box.geometry('750x250')
+		self.boxlabel=Label(self.box, text="", font=("Courier 22 bold"))
+		self.boxlabel.pack()
+		self.entry= Entry(self.box, width= 40)
+		self.entry.focus_set()
+		self.entry.pack()
+		ttk.Button(self.box, text= "Switch",width= 20, command= self.switching).pack(pady=20)
+		self.box.mainloop()
 
 	def listenRtp(self):		
 		"""Listen for RTP packets."""
 		while True:
 			try:
-				data=self.rtp.recv(20480)
+				data=self.rtp.recv(40960)
 				if(data):
 					Packet=RtpPacket()
 					Packet.decode(data)
@@ -231,6 +225,7 @@ class Client:
 			self.requestSent=self.SETUP
    
 		elif requestCode == self.PLAY and self.state == self.READY:
+			self.start["image"] = self.pause_img
 			self.rtspSeq += 1
 
 			request='PLAY ' + '\n '+ str(self.rtspSeq)
@@ -239,6 +234,7 @@ class Client:
 			self.requestSent=self.PLAY
    
 		elif requestCode ==  self.PAUSE and self.state == self.PLAYING:
+			self.start["image"] = self.play_img
 			self.rtspSeq +=1
 
 			request='PAUSE ' +'\n '+str(self.rtspSeq)

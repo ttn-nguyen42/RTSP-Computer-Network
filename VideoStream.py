@@ -55,6 +55,7 @@ class VideoStream:
 			iter+=1
 			if(iter==20):
 				break
+
 	def frameNbr(self):
 		"""Get frame number."""
 		return self.frameNum
