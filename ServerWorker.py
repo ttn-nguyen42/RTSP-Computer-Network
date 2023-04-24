@@ -113,7 +113,7 @@ class ServerWorker:
 		elif requestType == self.FORWARD:
 			print("processing FORWARD")
 			
-			self.clientInfo['event'].set()
+			# self.clientInfo['event'].set()
 			try:
 				self.clientInfo['videoStream'].skipFrame()
 			except:
@@ -123,7 +123,7 @@ class ServerWorker:
 		elif requestType == self.BACKWARD:
 			print("processing BACKWARD")
    
-			self.clientInfo['event'].set()
+			# self.clientInfo['event'].set()
 			try:
 				self.clientInfo['videoStream'].preFrame()
 			except:
