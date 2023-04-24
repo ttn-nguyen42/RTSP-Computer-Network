@@ -24,8 +24,7 @@ class Client:
 	BACKWARD=5
 	SWITCH=6
 	
-
-
+ 
 	# Initiation..
 	def __init__(self, master, serveraddr, serverport, rtpport, filename):
 		self.master = master
@@ -46,15 +45,20 @@ class Client:
 		
 	# THIS GUI IS JUST FOR REFERENCE ONLY, STUDENTS HAVE TO CREATE THEIR OWN GUI 	
 	def createWidgets(self):
+		self.play_img = PhotoImage("./assets/Play Button.png")
+		self.pause_img = PhotoImage("./assets/Pause Button.png")
+		self.skip_img = PhotoImage("./assets/Forward Button.png")
+		self.back_img = PhotoImage("./assets/Backward Button.png")
 		"""Build GUI."""
-		# Create Setup button
-		self.setup = Button(self.master, width=20, padx=3, pady=3)
-		self.setup["text"] = "Setup"
-		self.setup["command"] = self.setupMovie
-		self.setup.grid(row=2, column=0, padx=2, pady=2)
+		# # Create Setup button
+		# self.setup = Button(self.master, width=20, padx=3, pady=3)
+		# self.setup["text"] = "Setup"
+		# self.setup["command"] = self.setupMovie
+		# self.setup.grid(row=2, column=0, padx=2, pady=2)
 		
 		# Create Play button		
-		self.start = Button(self.master, width=20, padx=3, pady=3)
+		self.start = Button(self.master, height=50, width=50, padx=3, pady=3)
+		self.start["image"] = self.play_img
 		self.start["text"] = "Play/Pause"
 		self.start["command"] = self.playMovie
 		self.start.grid(row=2, column=2, padx=2, pady=2)
@@ -72,13 +76,15 @@ class Client:
 		self.teardown.grid(row=2, column=4, padx=2, pady=2)
 		
 		#Create Skip button
-		self.skip = Button(self.master, width=20, padx=3, pady=3)
+		self.skip = Button(self.master, height=50, width=50, padx=3, pady=3)
+		self.skip["image"] = self.skip_img
 		self.skip["text"] = "Forward"
 		self.skip["command"] =  self.forward
 		self.skip.grid(row=2, column=3, padx=2, pady=2)
   
 		#Create Back button
-		self.back = Button(self.master, width=20, padx=3, pady=3)
+		self.back = Button(self.master, height=50, width=50, padx=3, pady=3)
+		self.back["image"] = self.back_img
 		self.back["text"] = "Backward"
 		self.back["command"] =  self.backward
 		self.back.grid(row=2, column=1, padx=2, pady=2)
@@ -134,7 +140,6 @@ class Client:
 		self.box.destroy()
 		self.sendRtspRequest(self.SWITCH)
 	
- 
 	def handler_switch(self):
 		if tkinter.messagebox.askokcancel('Exit','Are you want to quit ?'):
 			self.state=self.READY
@@ -243,12 +248,13 @@ class Client:
 			print('-'*60 + '\n' + 'TEARDOWN request send to Server... \n'+'-'*60)
 			self.requestSent=self.TEARDOWN
    
-		elif requestCode == self.FORWARD and self.state == self.READY:
+		elif requestCode == self.FORWARD:
 			self.rtspSeq +=1
 			request='FORWARD '+'\n '+str(self.rtspSeq)
 			self.rtsp.send(request.encode())
 			print('-'*60+ '\n'+'FORWARD request sent to Server... \n' + '-'*60)
 			self.requestSent=self.FORWARD
+   
 		elif requestCode == self.BACKWARD:
 			self.rtspSeq +=1
 			request='BACKWARD '+'\n '+str(self.rtspSeq)
