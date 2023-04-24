@@ -42,6 +42,7 @@ class Client:
 		self.connectToServer()
 		self.frameNbr = 0
 		self.rtp=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+		self.sendRtspRequest(self.SETUP)
 		
 	# THIS GUI IS JUST FOR REFERENCE ONLY, STUDENTS HAVE TO CREATE THEIR OWN GUI 	
 	def createWidgets(self):
