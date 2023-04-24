@@ -165,7 +165,6 @@ class ServerWorker:
 				break 
 				
 			data = self.clientInfo['videoStream'].nextFrame()
-			print("Length of frame: ", len(data))
 			if data: 
 				frameNumber = self.clientInfo['videoStream'].frameNbr()
 				try:
@@ -174,9 +173,9 @@ class ServerWorker:
 					self.clientInfo['rtpSocket'].sendto(self.makeRtp(data, frameNumber),(address,port))
 				except:
 					print("Connection Error")
-					print('-'*60)
-					traceback.print_exc(file=sys.stdout)
-					print('-'*60)
+					# print('-'*60)
+					# traceback.print_exc(file=sys.stdout)
+					# print('-'*60)
 
 	def makeRtp(self, payload, frameNbr):
 		"""RTP-packetize the video data."""
