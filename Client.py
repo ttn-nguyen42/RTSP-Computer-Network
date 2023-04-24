@@ -50,47 +50,47 @@ class Client:
 		self.setup = Button(self.master, width=20, padx=3, pady=3)
 		self.setup["text"] = "Setup"
 		self.setup["command"] = self.setupMovie
-		self.setup.grid(row=1, column=0, padx=2, pady=2)
+		self.setup.grid(row=2, column=0, padx=2, pady=2)
 		
 		# Create Play button		
 		self.start = Button(self.master, width=20, padx=3, pady=3)
-		self.start["text"] = "Play"
+		self.start["text"] = "Play/Pause"
 		self.start["command"] = self.playMovie
-		self.start.grid(row=1, column=1, padx=2, pady=2)
+		self.start.grid(row=2, column=2, padx=2, pady=2)
 		
-		# Create Pause button			
-		self.pause = Button(self.master, width=20, padx=3, pady=3)
-		self.pause["text"] = "Pause"
-		self.pause["command"] = self.pauseMovie
-		self.pause.grid(row=1, column=2, padx=2, pady=2)
+		# # Create Pause button			
+		# self.pause = Button(self.master, width=20, padx=3, pady=3)
+		# self.pause["text"] = "Pause"
+		# self.pause["command"] = self.pauseMovie
+		# self.pause.grid(row=2, column=3, padx=2, pady=2)
 		
 		# Create Teardown button
 		self.teardown = Button(self.master, width=20, padx=3, pady=3)
 		self.teardown["text"] = "Teardown"
 		self.teardown["command"] =  self.exitClient
-		self.teardown.grid(row=1, column=6, padx=2, pady=2)
+		self.teardown.grid(row=2, column=4, padx=2, pady=2)
 		
 		#Create Skip button
 		self.skip = Button(self.master, width=20, padx=3, pady=3)
-		self.skip["text"] = "Skip"
+		self.skip["text"] = "Forward"
 		self.skip["command"] =  self.forward
-		self.skip.grid(row=1, column=3, padx=2, pady=2)
+		self.skip.grid(row=2, column=3, padx=2, pady=2)
   
 		#Create Back button
 		self.back = Button(self.master, width=20, padx=3, pady=3)
-		self.back["text"] = "PRE"
+		self.back["text"] = "Backward"
 		self.back["command"] =  self.backward
-		self.back.grid(row=1, column=4, padx=2, pady=2)
+		self.back.grid(row=2, column=1, padx=2, pady=2)
   
 		#Create Switch button
 		self.SW = Button(self.master, width=20, padx=3, pady=3)
-		self.SW["text"] = "switch"
+		self.SW["text"] = "Switch Video"
 		self.SW["command"] =  self.switch
-		self.SW.grid(row=1, column=5, padx=2, pady=2)	
+		self.SW.grid(row=0, column=0, padx=2, pady=2)	
 
 		# Create a label to display the movie
 		self.label = Label(self.master, height=19)
-		self.label.grid(row=0, column=0, columnspan=6, sticky=W+E+N+S, padx=8, pady=8) 
+		self.label.grid(row=1, column=0, columnspan=6, sticky=W+E+N+S, padx=8, pady=8) 
 	
 	def setupMovie(self):
 		"""Setup button handler."""
@@ -115,7 +115,10 @@ class Client:
 			threading.Thread(target=self.listenRtp).start()
 			self.playEvent=threading.Event()
 			self.playEvent.clear()
-			self.sendRtspRequest(self.PLAY) 
+			self.sendRtspRequest(self.PLAY)
+	
+		elif(self.state==self.PLAYING):
+			self.sendRtspRequest(self.PAUSE)
 	
 	def forward(self):
 		"""skip 1 frame"""
@@ -159,8 +162,6 @@ class Client:
 			self.entry.pack()
 			ttk.Button(self.box, text= "Switch",width= 20, command= self.switching).pack(pady=20)
 			self.box.mainloop()
-   
-			
 
 	def listenRtp(self):		
 		"""Listen for RTP packets."""
@@ -215,7 +216,7 @@ class Client:
 		#-------------
 		# TO COMPLETE
 		#-------------
-		if requestCode ==  self.SETUP and self.state == self.INIT:
+		if requestCode == self.SETUP and self.state == self.INIT:
 			threading.Thread(target=self.recvRtspReply).start()
 			self.rtspSeq=1
 
@@ -230,6 +231,7 @@ class Client:
 			self.rtsp.send(request.encode())
 			print('-'*60 + '\n' + 'PLAY request send to Server... \n'+'-'*60)
 			self.requestSent=self.PLAY
+   
 		elif requestCode ==  self.PAUSE and self.state == self.PLAYING:
 			self.rtspSeq +=1
 
@@ -237,13 +239,14 @@ class Client:
 			self.rtsp.send(request.encode())
 			print('-'*60+ '\n'+'PAUSE request sent to Server... \n' + '-'*60)
 			self.requestSent=self.PAUSE
+   
 		elif requestCode == self.TEARDOWN and not self.state == self.INIT:
 			self.rtspSeq +=1
-
 			request='TEARDOWN '+ '\n '+str(self.rtspSeq)
 			self.rtsp.send(request.encode())
 			print('-'*60 + '\n' + 'TEARDOWN request send to Server... \n'+'-'*60)
 			self.requestSent=self.TEARDOWN
+   
 		elif requestCode == self.FORWARD and self.state == self.READY:
 			self.rtspSeq +=1
 			request='FORWARD '+'\n '+str(self.rtspSeq)
@@ -256,6 +259,7 @@ class Client:
 			self.rtsp.send(request.encode())
 			print('-'*60+ '\n'+'BACKWARD request sent to Server... \n' + '-'*60)
 			self.requestSent=self.BACKWARD
+   
 		elif requestCode == self.SWITCH:
 			self.rtspSeq +=1
 			request='SWITCH ' +str(self.fileName) +'\n '+str(self.rtspSeq)
