@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import socket, threading, sys, traceback, os
 from tkinter import ttk
 from RtpPacket import RtpPacket
+import datetime
 
 CACHE_FILE_NAME = "cache-"
 CACHE_FILE_EXT = ".jpg"
@@ -20,9 +21,10 @@ class Client:
 	PLAY = 1
 	PAUSE = 2
 	TEARDOWN = 3
-	FORWARD	=4
-	BACKWARD=5
-	SWITCH=6
+	FORWARD	= 4
+	BACKWARD = 5
+	SWITCH =6
+	SEEK = 7
 	
 	
 	# Initiation..
@@ -56,13 +58,28 @@ class Client:
 		# self.setup["text"] = "Setup"
 		# self.setup["command"] = self.setupMovie
 		# self.setup.grid(row=2, column=0, padx=2, pady=2)
+  
+		# Create Scrub bar
+		self.start_time = Label(self.master, width=5)
+		self.start_time["text"] = str(datetime.timedelta(seconds=0))
+		self.start_time.grid(row=2, column=0, pady=2)
+
+		self.progress_value = IntVar(self.master)
+  
+		self.progress_slider = Scale(self.master, variable=self.progress_value, length=500, from_=0, to=0, orient="horizontal")
+		self.progress_slider["command"] = self.seek
+		self.progress_slider.grid(row=2, column=1, columnspan=9, pady=2)
+  
+		self.end_time = Label(self.master, width=5)
+		self.end_time["text"] = str(datetime.timedelta(seconds=0))
+		self.end_time.grid(row=2, column=10, pady=2)
 		
 		# Create Play button		
 		self.start = Button(self.master, width=40, height=40, padx=3, pady=3)
 		self.start["image"] = self.play_img
 		self.start["text"] = "Play/Pause"
 		self.start["command"] = self.playMovie
-		self.start.grid(row=2, column=2, padx=2, pady=2)
+		self.start.grid(row=3, column=5, padx=2, pady=2)
 		
 		# # Create Pause button			
 		# self.pause = Button(self.master, width=20, padx=3, pady=3)
@@ -74,31 +91,31 @@ class Client:
 		self.teardown = Button(self.master, width=10, padx=3, pady=3)
 		self.teardown["text"] = "Teardown"
 		self.teardown["command"] = self.exitClient
-		self.teardown.grid(row=0, column=4, padx=2, pady=2)
+		self.teardown.grid(row=0, column=9, columnspan=2, padx=2, pady=2)
 		
 		#Create Skip button
 		self.skip = Button(self.master, width=40, height=40, padx=3, pady=3)
 		self.skip["image"] = self.skip_img
 		self.skip["text"] = "Forward"
 		self.skip["command"] =  self.forward
-		self.skip.grid(row=2, column=3, padx=2, pady=2)
+		self.skip.grid(row=3, column=6, padx=2, pady=2)
   
 		#Create Back button
 		self.back = Button(self.master, width=40, height=40, padx=3, pady=3)
 		self.back["image"] = self.back_img
 		self.back["text"] = "Backward"
 		self.back["command"] =  self.backward
-		self.back.grid(row=2, column=1, padx=2, pady=2)
+		self.back.grid(row=3, column=4, padx=2, pady=2)
   
 		#Create Switch button
 		self.SW = Button(self.master, width=10, padx=3, pady=3)
 		self.SW["text"] = "Switch Video"
 		self.SW["command"] =  self.switch
-		self.SW.grid(row=0, column=0, padx=2, pady=2)	
+		self.SW.grid(row=0, column=0, columnspan=2, padx=2, pady=2)	
 
 		# Create a label to display the movie
 		self.label = Label(self.master, height=19)
-		self.label.grid(row=1, column=0, columnspan=6, sticky=W+E+N+S, padx=8, pady=8) 
+		self.label.grid(row=1, column=0, columnspan=11, sticky=W+E+N+S, padx=8, pady=8) 
 	
 	def setupMovie(self):
 		"""Setup button handler."""
@@ -112,11 +129,24 @@ class Client:
 			self.master.destroy()
 			os.remove(CACHE_FILE_NAME + str(self.sessionId) + CACHE_FILE_EXT)
 
+	# def pauseMovie(self):
+	# 	"""Pause button handler."""
+	# 	if(self.state==self.PLAYING):
+	# 		self.sendRtspRequest(self.PAUSE)
+ 
+	def	updateDuration(self):
+		self.duration = self.totalframe / 20
+
+		self.end_time["text"] = str(datetime.timedelta(seconds=self.duration))
+		self.progress_slider["to"] = self.duration
+  
+	def updateProgress(self):
+		self.progress_value.set(self.frameNbr / self.totalframe * self.duration)
+	
 	def pauseMovie(self):
-		"""Pause button handler."""
 		if(self.state==self.PLAYING):
 			self.sendRtspRequest(self.PAUSE)
-	
+   
 	def playMovie(self):
 		"""Play button handler."""
 		if(self.state==self.READY):
@@ -127,6 +157,15 @@ class Client:
 	
 		elif(self.state==self.PLAYING):
 			self.sendRtspRequest(self.PAUSE)
+   
+	def seek(self, value):
+		if(self.state==self.PLAYING or self.state==self.READY):
+			if(int(value) == 0):
+				self.targetFrame = 0
+			else:
+				self.targetFrame = int(value) * 20
+			print(value)
+			self.sendRtspRequest(self.SEEK)
 	
 	def forward(self):
 		if(self.state==self.PLAYING or self.state==self.READY):
@@ -156,11 +195,13 @@ class Client:
 		self.box.title('Switch to another video')
 		self.box.geometry('750x250')
 		self.boxlabel=Label(self.box, text="", font=("Courier 22 bold"))
-		self.boxlabel.pack()
 		self.entry= Entry(self.box, width= 40)
 		self.entry.focus_set()
 		self.entry.pack()
-		ttk.Button(self.box, text= "Switch",width= 20, command= self.switching).pack(pady=20)
+		self.entry.place(relx=.5, rely=.4, anchor="c")
+		self.btn = ttk.Button(self.box, text= "Switch",width= 20, command= self.switching)
+		self.btn.pack(pady=20)
+		self.btn.place(relx=.5, rely=.6, anchor="c")
 		self.box.mainloop()
 
 	def listenRtp(self):		
@@ -179,6 +220,10 @@ class Client:
 					# if(currentframe > self.frameNbr):
 					self.frameNbr=currentframe
 					self.updateMovie(self.writeFrame(Packet.getPayload()))
+					self.updateProgress()
+
+					if(self.frameNbr == self.totalframe):
+						self.pauseMovie()
 			except:
 				if self.playEvent.isSet():
 					break
@@ -269,13 +314,20 @@ class Client:
 			self.rtsp.send(request.encode())
 			print('-'*60+ '\n'+'SWITCHING request sent to Server... \n' + '-'*60)
 			self.requestSent=self.SWITCH
+   
+		elif requestCode == self.SEEK:
+			self.rtspSeq += 1
+			request='SEEK ' +str(self.fileName)+' FRAME ' +str(self.targetFrame) +'\n '+str(self.rtspSeq)
+			self.rtsp.send(request.encode())
+			print('-'*60+ '\n'+'SEEKING request sent to Server... \n' + '-'*60)
+			self.requestSent=self.SEEK
 		else:
 			return
 
 	def recvRtspReply(self):
 		"""Receive RTSP reply from the server."""
 		while TRUE:
-			reply=self.rtsp.recv(1024)
+			reply=self.rtsp.recv(40960)
 			if reply:
 				self.parseRtspReply(reply.decode())
 			
@@ -300,6 +352,7 @@ class Client:
 						print('Setting Up RtpPort for Video Stream')
 						self.openRtpPort()
 						self.totalframe=int(lines[3].split(' ')[1]) # use to draw time bar
+						self.updateDuration()
 					elif self.requestSent== self.PLAY:
 						print('Updating RTSP state.... ')
 						self.state=self.PLAYING
@@ -317,6 +370,7 @@ class Client:
 					elif self.requestSent == self.SWITCH:
 						print('SWITCH SUCCESSFULLY')
 						self.totalframe=int(lines[3].split(' ')[1])
+						self.updateDuration()
 						self.state=self.READY
 					
 	

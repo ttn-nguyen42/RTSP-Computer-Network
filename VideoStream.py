@@ -31,10 +31,19 @@ class VideoStream:
 			data = self.file.read(framelength)
 			self.history.append(framelength+5)
 			self.frameNum += 1
+		else:
+			# Reset nextFrame to 1 when video is at the final frame
+			self.file.seek(0)
+			self.history = []
+			data = self.file.read(5)
+			framelength = int(data)
+			data = self.file.read(framelength)
+			self.history.append(framelength+5)
+			self.frameNum = 1
 		return data
 	
 	def preFrame(self):
-		iter =0
+		iter = 0
 		while self.frameNum>=1:
 			self.file.seek(-int(self.history[-1]),1)
 			self.history.pop()
@@ -44,7 +53,7 @@ class VideoStream:
 				break
 	
 	def skipFrame(self):
-		iter =0
+		iter = 0
 		while self.frameNum<=self.totalframe:
 			data=self.file.read(5)
 			framelength=int(data)
@@ -55,6 +64,20 @@ class VideoStream:
 			if(iter==20):
 				break
 
+	def goToFrame(self, targetFrame):
+		if self.frameNum < targetFrame:
+			while self.frameNum < targetFrame:
+				data=self.file.read(5)
+				framelength=int(data)
+				self.file.seek(framelength,1)
+				self.history.append(framelength+5)
+				self.frameNum+=1
+		else:
+			while self.frameNum > targetFrame:
+				self.file.seek(-int(self.history[-1]),1)
+				self.history.pop()
+				self.frameNum-=1
+    
 	def frameNbr(self):
 		"""Get frame number."""
 		return self.frameNum

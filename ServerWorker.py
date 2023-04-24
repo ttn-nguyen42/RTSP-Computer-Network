@@ -11,7 +11,8 @@ class ServerWorker:
 	TEARDOWN = 'TEARDOWN'
 	FORWARD	= 'FORWARD'
 	BACKWARD = 'BACKWARD'
-	SWITCH='SWITCH'
+	SWITCH = 'SWITCH'
+	SEEK = 'SEEK'
  
 	INIT = 0
 	READY = 1
@@ -34,7 +35,7 @@ class ServerWorker:
 		"""Receive RTSP request from the client."""
 		connSocket = self.clientInfo['rtspSocket'][0]
 		while True:            
-			data = connSocket.recv(256)
+			data = connSocket.recv(40960)
 			if data:
 				print("Data received:\n" + data.decode("utf-8"))
 				self.processRtspRequest(data.decode("utf-8"))
@@ -141,6 +142,18 @@ class ServerWorker:
 				self.replyRtsp(self.FILE_NOT_FOUND_404, seq[1])
 
 			self.replyRtsp(self.OK_200,seq[1],1)
+
+		elif requestType == self.SEEK:
+			print("processing SEEK")
+
+			# Get the target frame
+			targetFrame = int(line1[3])
+   
+			# self.clientInfo['event'].set()
+			try:
+				self.clientInfo['videoStream'].goToFrame(targetFrame)
+			except:
+				print('Connection Error')
    
 	def sendRtp(self):
 		"""Send RTP packets over UDP."""
