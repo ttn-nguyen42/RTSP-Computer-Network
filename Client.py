@@ -118,16 +118,11 @@ class Client:
 			self.sendRtspRequest(self.PLAY) 
 	
 	def forward(self):
-		"""skip 1 frame"""
-		if(self.state==self.PLAYING):
-			self.pauseMovie()
-		elif(self.state==self.READY):
+		if(self.state==self.PLAYING or self.state==self.READY):
 			self.sendRtspRequest(self.FORWARD)
    
 	def backward(self):
-		if(self.state==self.PLAYING):
-			self.pauseMovie()
-		elif(self.state==self.READY):
+		if(self.state==self.PLAYING or self.state==self.READY):
 			self.sendRtspRequest(self.BACKWARD)
 	
 	def switching(self):
@@ -244,13 +239,13 @@ class Client:
 			self.rtsp.send(request.encode())
 			print('-'*60 + '\n' + 'TEARDOWN request send to Server... \n'+'-'*60)
 			self.requestSent=self.TEARDOWN
-		elif requestCode == self.FORWARD and self.state == self.READY:
+		elif requestCode == self.FORWARD:
 			self.rtspSeq +=1
 			request='FORWARD '+'\n '+str(self.rtspSeq)
 			self.rtsp.send(request.encode())
 			print('-'*60+ '\n'+'FORWARD request sent to Server... \n' + '-'*60)
 			self.requestSent=self.FORWARD
-		elif requestCode == self.BACKWARD and self.state == self.READY:
+		elif requestCode == self.BACKWARD:
 			self.rtspSeq +=1
 			request='BACKWARD '+'\n '+str(self.rtspSeq)
 			self.rtsp.send(request.encode())
@@ -304,9 +299,9 @@ class Client:
 					elif self.requestSent == self.TEARDOWN:
 						self.teardownAcked=1
 					elif self.requestSent == self.FORWARD:
-						print('SKIP 1 FRAME SUCCESSFULLY')
+						print('SKIP SUCCESSFULLY')
 					elif self.requestSent == self.BACKWARD:
-						print('BACKWARD 1 FRAME SUCCESSFULLY')
+						print('BACKWARD SUCCESSFULLY')
 					elif self.requestSent == self.SWITCH:
 						print('SWITCH SUCCESSFULLY')
 						self.totalframe=int(lines[3].split(' ')[1])
