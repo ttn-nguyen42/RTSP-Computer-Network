@@ -120,6 +120,7 @@ class ServerWorker:
 				print("Connection Error")
     
 			self.replyRtsp(self.OK_200, seq[1])
+   
 		elif requestType == self.BACKWARD:
 			print("processing BACKWARD")
    
@@ -130,6 +131,7 @@ class ServerWorker:
 				print('Connection Error')
 
 			self.replyRtsp(self.OK_200,seq[1])
+   
 		elif requestType == self.SWITCH:
 			print('processing switch')
 			try:
