@@ -193,7 +193,6 @@ class Client:
 		self.box.protocol("WM_DELETE_WINDOW",self.handler_switch)
 		self.box.title('Switch to another video')
 		self.box.geometry('750x250')
-		self.boxlabel=Label(self.box, text="", font=("Courier 22 bold"))
 		# self.entry= Entry(self.box, width= 40)
 		# self.entry.focus_set()
 		# self.entry.pack()
@@ -203,9 +202,10 @@ class Client:
 			self.listbox.insert('end',name)
 		self.listbox.focus_set()
 		self.listbox.pack()
+		self.listbox.place(relx=.5, rely=.45, anchor="c")
 		self.btn = ttk.Button(self.box, text= "Switch",width= 20, command= self.switching)
 		self.btn.pack(pady=20)
-		self.btn.place(relx=.5, rely=.6, anchor="c")
+		self.btn.place(relx=.5, rely=.85, anchor="c")
 		self.box.mainloop()
 
 	def listenRtp(self):		
