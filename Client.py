@@ -368,7 +368,7 @@ class Client:
 					elif self.requestSent == self.TEARDOWN:
 						self.teardownAcked=1
 					elif self.requestSent == self.FORWARD:
-						print('SKIP SUCCESSFULLY')
+						print('FORWARD SUCCESSFULLY')
 					elif self.requestSent == self.BACKWARD:
 						print('BACKWARD SUCCESSFULLY')
 					elif self.requestSent == self.SWITCH:
@@ -377,6 +377,8 @@ class Client:
 						self.updateDuration()
 						self.state=self.READY
 						self.frameNbr=0
+					elif self.requestSent == self.SEEK:
+						print('SEEK SUCCESSFULLY')
 					
 	
 	def openRtpPort(self):
