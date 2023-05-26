@@ -393,7 +393,7 @@ class Client:
 		# ...
 		self.rtp.settimeout(0.5)
 		try:
-			self.rtp.bind((self.serverAddr,self.rtpPort))
+			self.rtp.bind(("0.0.0.0",self.rtpPort))
 			print('Bind RtpPort Success')
 		except:
 			tkinter.messagebox.showwarning('Unable to Bind','Unable to bind PORT {}'.format(self.rtpPort))
