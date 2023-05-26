@@ -165,6 +165,7 @@ class ServerWorker:
     def sendRtp(self):
         """Send RTP packets over UDP."""
         while True:
+            print("Sending packets")
             self.clientInfo["event"].wait(0.05)
 
             # Stop sending if request is PAUSE or TEARDOWN
@@ -177,6 +178,7 @@ class ServerWorker:
                 try:
                     address = self.clientInfo["rtspSocket"][1][0]
                     port = int(self.clientInfo["rtpPort"])
+                    print(f"To: {address}:{port}")
                     self.clientInfo["rtpSocket"].sendto(
                         self.makeRtp(data, frameNumber), (address, port)
                     )
